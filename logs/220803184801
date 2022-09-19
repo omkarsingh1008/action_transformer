@@ -1,0 +1,77 @@
+----- Start Split 1 ----
+
+- Fold 1
+Accuracy Test: 0.8985002040863037 <> Balanced Accuracy: 0.8566204856867776
+
+- Fold 2
+Accuracy Test: 0.8995465636253357 <> Balanced Accuracy: 0.8545012946153834
+
+- Fold 3
+Accuracy Test: 0.903034508228302 <> Balanced Accuracy: 0.8609619617598465
+
+- Fold 4
+Accuracy Test: 0.9012905359268188 <> Balanced Accuracy: 0.8514200727688916
+
+- Fold 5
+Accuracy Test: 0.9044297337532043 <> Balanced Accuracy: 0.8654187628519926
+
+- Fold 6
+Accuracy Test: 0.9058248996734619 <> Balanced Accuracy: 0.8604475857195591
+
+- Fold 7
+Accuracy Test: 0.8971049785614014 <> Balanced Accuracy: 0.8515284309060119
+
+- Fold 8
+Accuracy Test: 0.903034508228302 <> Balanced Accuracy: 0.8556771800685908
+
+- Fold 9
+Accuracy Test: 0.9009417295455933 <> Balanced Accuracy: 0.8535850223064708
+
+- Fold 10
+Accuracy Test: 0.90198814868927 <> Balanced Accuracy: 0.8536251540441395
+
+---- Split 1 ----
+Accuracy mean: 0.9015695810317993
+Accuracy std: 0.002543105301324577
+Balanced Accuracy mean: 0.8563785950727665
+Balanced Accuracy std: 0.004322728788788496
+----- Start Split 2 ----
+
+- Fold 1
+Accuracy Test: 0.8821700215339661 <> Balanced Accuracy: 0.8156543094571604
+
+- Fold 2
+Accuracy Test: 0.8814789056777954 <> Balanced Accuracy: 0.8020033348139259
+
+- Fold 3
+Accuracy Test: 0.8883897662162781 <> Balanced Accuracy: 0.8191137375833755
+
+- Fold 4
+Accuracy Test: 0.8908085823059082 <> Balanced Accuracy: 0.8262532902360553
+
+- Fold 5
+Accuracy Test: 0.8835521936416626 <> Balanced Accuracy: 0.8153995845405234
+
+- Fold 6
+Accuracy Test: 0.8928818106651306 <> Balanced Accuracy: 0.8326946343838564
+
+- Fold 7
+Accuracy Test: 0.8949550986289978 <> Balanced Accuracy: 0.8193942585264404
+
+- Fold 8
+Accuracy Test: 0.8935729265213013 <> Balanced Accuracy: 0.8255123191091963
+
+- Fold 9
+Accuracy Test: 0.8918452262878418 <> Balanced Accuracy: 0.8240032305307718
+
+- Fold 10
+Accuracy Test: 0.888735294342041 <> Balanced Accuracy: 0.8135403810098145
+
+---- Split 2 ----
+Accuracy mean: 0.8888389825820923
+Accuracy std: 0.004646362462312699
+Balanced Accuracy mean: 0.819356908019112
+Balanced Accuracy std: 0.008058170340823444
+----- Start Split 3 ----
+
+- Fold 1

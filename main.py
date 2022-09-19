@@ -28,10 +28,10 @@ logger = Logger(config['LOG_DIR']+now.strftime("%y%m%d%H%M%S"))
 
 
 # SET GPU 
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-#gpus = tf.config.experimental.list_physical_devices('GPU')
-#tf.config.experimental.set_visible_devices(gpus[config['GPU']], 'GPU')
-#tf.config.experimental.set_memory_growth(gpus[config['GPU']], True)
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+gpus = tf.config.experimental.list_physical_devices('GPU')
+tf.config.experimental.set_visible_devices(gpus[config['GPU']], 'GPU')
+tf.config.experimental.set_memory_growth(gpus[config['GPU']], True)
 
 
 # SET TRAINER

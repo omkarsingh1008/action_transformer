@@ -3,11 +3,31 @@ import cv2
 import numpy as np
 from openvino.inference_engine import IECore
 import openvino_models as models
-from urtils import load,id_assign
-from urtils import postprocess_yolov5,draw_tracks,tracking,check_id,pointInRect,check_person,many_bottel_pickup
 from motrackers import CentroidTracker
 import json
 import requests
+
+from preprocess__ import pre
+from utils.tools import read_yaml
+# GENERAL LIBRARIES 
+import math
+import numpy as np
+import joblib
+from pathlib import Path
+# MACHINE LEARNING LIBRARIES
+import sklearn
+import tensorflow as tf
+import tensorflow_datasets as tfds
+import tensorflow_addons as tfa
+from sklearn.model_selection import train_test_split
+from sklearn.utils import shuffle
+# OPTUNA
+import optuna
+from optuna.trial import TrialState
+from utils.transformer import TransformerEncoder, PatchClassEmbedding, Patches
+from utils.data import load_mpose, random_flip, random_noise, one_hot
+from utils.tools import CustomSchedule, CosineSchedule
+from utils.tools import Logger
 
 default_skeleton = ((15, 13), (13, 11), (16, 14), (14, 12), (11, 12), (5, 11), (6, 12), (5, 6),
     (5, 7), (6, 8), (7, 9), (8, 10), (1, 2), (0, 1), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6))
@@ -76,17 +96,70 @@ out_paf=model.pafs_blob_name
 n,c,h,w = model.net.inputs[input].shape
 exec_net = ie.load_network(network=model.net,config=plugin_config,device_name="CPU",num_requests = 1)
 
-cap = cv2.VideoCapture(0)
+
+config = read_yaml('utils/config.yaml')
+
+print(config)
+model_size = config['MODEL_SIZE']
+n_heads = config[model_size]['N_HEADS']
+n_layers = config[model_size]['N_LAYERS']
+embed_dim = config[model_size]['EMBED_DIM']
+dropout = config[model_size]['DROPOUT']
+mlp_head_size = config[model_size]['MLP']
+activation = tf.nn.gelu
+d_model = 64 * n_heads
+d_ff = d_model * 4
+labels = config["LABELS"]
+ 
+split = 1
+fold = 0
+trial = None
+bin_path = config['MODEL_DIR']
+
+def build_act(transformer):
+        inputs = tf.keras.layers.Input(shape=(config['FRAMES'], 
+                                              config[config['DATASET']]['KEYPOINTS']*config['CHANNELS']))
+        x = tf.keras.layers.Dense(d_model)(inputs)
+        x = PatchClassEmbedding(d_model, config['FRAMES'])(x)
+        x = transformer(x)
+        x = tf.keras.layers.Lambda(lambda x: x[:,0,:])(x)
+        x = tf.keras.layers.Dense(mlp_head_size)(x)
+        outputs = tf.keras.layers.Dense(config['CLASSES'])(x)
+        return tf.keras.models.Model(inputs, outputs)
+
+
+transformer = TransformerEncoder(d_model, n_heads,d_ff, dropout, activation, n_layers)
+model_act = build_act(transformer)
+
+print(model_act.summary())
+
+#lr = CustomSchedule(d_model, 
+#             warmup_steps=len(ds_train)*config['N_EPOCHS']*config['WARMUP_PERC'],
+#             decay_step=len(ds_train)*config['N_EPOCHS']*config['STEP_PERC'])
+
+optimizer = tfa.optimizers.AdamW(weight_decay=config['WEIGHT_DECAY'])
+
+model_act.compile(optimizer=optimizer,
+                           loss=tf.keras.losses.CategoricalCrossentropy(from_logits=True, label_smoothing=0.1),
+                           metrics=[tf.keras.metrics.CategoricalAccuracy(name="accuracy")])
+
+
+model_act.load_weights("bin/AcT_micro_2_9.h5")
+
+
+cap = cv2.VideoCapture("VID_20220719_175104.mp4")
 frame_width = int(cap.get(3))
 frame_height = int(cap.get(4))
 frame_size = (frame_width,frame_height)
 fps = int(cap.get(cv2.CAP_PROP_FPS))
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-output = cv2.VideoWriter('output9.mp4', fourcc, fps, (500,500))
+output = cv2.VideoWriter('output9.mp4', fourcc, fps, (1000,1000))
 font = cv2.FONT_HERSHEY_SIMPLEX
+l=[]
+s=""
 while True:
     _,frame = cap.read()
-    frame = cv2.resize(frame, (500,500))
+    frame = cv2.resize(frame, (1000,1000))
     x_shape, y_shape = frame.shape[1], frame.shape[0]
     output_transform = models.OutputTransform(frame.shape[:2], None)
     output_resolution = (frame.shape[1], frame.shape[0])
@@ -98,12 +171,27 @@ while True:
     results_paf = exec_net.requests[0].outputs[out_paf]
     results={"heatmaps":results_ht,"pafs":results_paf,"pooled_heatmaps":results_pool}
     poses,scores=model.postprocess(results,preprocessing_meta)
-    print("*"*50)
-    print(poses)
-    print("*"*50)
-    print(scores)
-    print("*"*50)
+    #print("*"*50)
+    #print(poses)
+    #s=""
+    try:
+        l.append(poses[0])
+    except Exception as e:
+        print(e)
+    if len(l)==30:
+        l = np.array(l)
+        l = pre(l)
+        print(l.shape)
+        p = np.argmax(model_act.predict(l)) 
+        s=labels[p]
+        print(s)
+        l=[]        
+    #print("*"*50)
+    #print(scores)
+    #print("*"*50)
     frame = draw_pose(frame,poses,0.1,output_transform)
+    if len(l) < 30:
+        cv2.putText(frame, str(s), (100,100), 1, cv2.FONT_HERSHEY_DUPLEX, (0, 0, 255), 3)
     output.write(frame)
     cv2.imshow('smart store', frame)
     
